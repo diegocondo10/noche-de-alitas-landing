@@ -151,7 +151,7 @@ export default function NocheAlitasLanding() {
     const whatsappNumber = "593939533288";
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
     // console.log(whatsappMessage);
-    // window.open(whatsappUrl, "_blank");
+    window.open(whatsappUrl, "_blank");
     setShowCartModal(false);
   };
 
