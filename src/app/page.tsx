@@ -1,103 +1,176 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { CartBar } from "@/components/cart-bar";
+import { CartModal } from "@/components/cart-modal";
+import { Header } from "@/components/header";
+import { MenuSection } from "@/components/menu-section";
+import { CartItem, MenuItem } from "@/types/data.type";
+import { useState } from "react";
+
+const menuItems: MenuItem[] = [
+  // Combos
+  {
+    id: "combo-1",
+    name: "La Probadita",
+    description: "4 alitas + papa pequeña + 1 salsa a elección",
+    price: 4.99,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "combo",
+    spicyLevel: 2,
+  },
+  {
+    id: "combo-2",
+    name: "Siete Pecados",
+    description: "7 alitas + papa grande + 2 salsas a elección",
+    price: 7.99,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "combo",
+    popular: true,
+    spicyLevel: 3,
+  },
+  {
+    id: "combo-3",
+    name: "Doce Rounds",
+    description: "12 alitas + papa grande + 3 salsas a elección",
+    price: 12.99,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "combo",
+    popular: true,
+    spicyLevel: 3,
+  },
+  {
+    id: "combo-4",
+    name: "La Manada",
+    description: "20 alitas + 2 papas grandes + 4 salsas a elección",
+    price: 22.99,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "combo",
+    spicyLevel: 2,
+  },
+  {
+    id: "combo-5",
+    name: "Noche Legendaria",
+    description: "30 alitas + 2 papas grandes + 4 salsas a elección",
+    price: 32.99,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "combo",
+    spicyLevel: 4,
+  },
+  // Extras
+  {
+    id: "extra-1",
+    name: "Papas Fritas",
+    description: "Papas fritas crujientes y doradas",
+    price: 2.5,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "extra",
+  },
+  {
+    id: "extra-2",
+    name: "Salsa Adicional",
+    description: "Salsa extra de tu elección",
+    price: 1.0,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "extra",
+  },
+  // Bebidas
+  {
+    id: "bebida-1",
+    name: "Coca-Cola Personal",
+    description: "Coca-Cola 350ml",
+    price: 1.0,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "bebida",
+  },
+  {
+    id: "bebida-2",
+    name: "Cola 1.35 Litro",
+    description: "Bebida cola familiar 1.35L",
+    price: 2.0,
+    image: "/placeholder.svg?height=200&width=300",
+    category: "bebida",
+  },
+];
+
+export default function NocheAlitasLanding() {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [showCartModal, setShowCartModal] = useState(false);
+
+  const addToCart = (item: MenuItem) => {
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((cartItem) => cartItem.id === item.id);
+
+      if (existingItem) {
+        return prevItems.map((cartItem) =>
+          cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
+        );
+      } else {
+        return [...prevItems, { ...item, quantity: 1 }];
+      }
+    });
+  };
+
+  const updateQuantity = (itemId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+    } else {
+      setCartItems((prevItems) =>
+        prevItems.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item))
+      );
+    }
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+    setShowCartModal(false);
+  };
+
+  const generateWhatsAppMessage = (cartItems: CartItem[]) => {
+    const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    let message = `🌙 *NOCHE DE ALITAS* 🍗\n\n📋 *MI PEDIDO:*\n\n`;
+
+    cartItems.forEach((item) => {
+      message += `• *${item.name}* x${item.quantity}\n`;
+      message += `  ${item.description}\n`;
+      message += `  $${item.price} c/u = $${(item.price * item.quantity).toFixed(2)}\n\n`;
+    });
+
+    message += `💰 *TOTAL: $${totalPrice.toFixed(2)}*\n\n`;
+    message += `🍯 *Salsas disponibles:* BBQ, Maracúya, Tamarindo, Piña, Picante, Mora\n\n`;
+    message += `📝 Por favor confirmen mi pedido y me indican el tiempo de entrega.\n\n`;
+    message += `¡Gracias! 🌟`;
+    console.log("MESSAGE: ", message);
+    return encodeURIComponent(message);
+  };
+
+  const handleOrderNow = () => {
+    if (cartItems.length === 0) return;
+
+    const whatsappMessage = generateWhatsAppMessage(cartItems);
+    const whatsappNumber = "593939533288";
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+    // console.log(whatsappMessage);
+    // window.open(whatsappUrl, "_blank");
+    setShowCartModal(false);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div className='min-h-screen w-full'>
+      <div className='bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800'>
+        <Header />
+        {/* <HeroSection /> */}
+        <MenuSection menuItems={menuItems} onAddToCart={addToCart} />
+        <CartBar cartItems={cartItems} onViewCart={() => setShowCartModal(true)} />
+        <CartModal
+          isOpen={showCartModal}
+          cartItems={cartItems}
+          onClose={() => setShowCartModal(false)}
+          onUpdateQuantity={updateQuantity}
+          onOrderNow={handleOrderNow}
+          onClearCart={clearCart}
         />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
