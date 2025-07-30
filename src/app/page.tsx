@@ -4,7 +4,9 @@ import { CartBar } from "@/components/cart-bar";
 import { CartModal } from "@/components/cart-modal";
 import { Header } from "@/components/header";
 import { MenuSection } from "@/components/menu-section";
+import ComboSauceModal from "@/components/combo-sauce-modal";
 import { CartItem, MenuItem } from "@/types/data.type";
+import { uuidV4 } from "@/utils/uuid";
 import { useState } from "react";
 
 const menuItems: MenuItem[] = [
@@ -17,6 +19,7 @@ const menuItems: MenuItem[] = [
     image: "/placeholder.svg?height=200&width=300",
     category: "combo",
     spicyLevel: 2,
+    sauceCount: 1,
   },
   {
     id: "combo-2",
@@ -27,6 +30,7 @@ const menuItems: MenuItem[] = [
     category: "combo",
     popular: true,
     spicyLevel: 3,
+    sauceCount: 2,
   },
   {
     id: "combo-3",
@@ -37,6 +41,7 @@ const menuItems: MenuItem[] = [
     category: "combo",
     popular: true,
     spicyLevel: 3,
+    sauceCount: 3,
   },
   {
     id: "combo-4",
@@ -46,6 +51,7 @@ const menuItems: MenuItem[] = [
     image: "/placeholder.svg?height=200&width=300",
     category: "combo",
     spicyLevel: 2,
+    sauceCount: 4,
   },
   {
     id: "combo-5",
@@ -55,6 +61,7 @@ const menuItems: MenuItem[] = [
     image: "/placeholder.svg?height=200&width=300",
     category: "combo",
     spicyLevel: 4,
+    sauceCount: 4,
   },
   // Extras
   {
@@ -95,27 +102,42 @@ const menuItems: MenuItem[] = [
 export default function NocheAlitasLanding() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCartModal, setShowCartModal] = useState(false);
+  const [comboToCustomize, setComboToCustomize] = useState<MenuItem | null>(null);
+  const [showSauceModal, setShowSauceModal] = useState(false);
 
-  const addToCart = (item: MenuItem) => {
+  const addItemToCart = (item: MenuItem, sauces: string[] = []) => {
     setCartItems((prevItems) => {
-      const existingItem = prevItems.find((cartItem) => cartItem.id === item.id);
-
-      if (existingItem) {
-        return prevItems.map((cartItem) =>
-          cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
-        );
-      } else {
-        return [...prevItems, { ...item, quantity: 1 }];
+      if (item.category !== "combo") {
+        const existingItem = prevItems.find((cartItem) => cartItem.id === item.id);
+        if (existingItem) {
+          return prevItems.map((cartItem) =>
+            cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
+          );
+        }
       }
+
+      return [
+        ...prevItems,
+        { ...item, quantity: 1, selectedSauces: sauces, cartId: uuidV4() },
+      ];
     });
   };
 
-  const updateQuantity = (itemId: string, newQuantity: number) => {
+  const handleAddToCart = (item: MenuItem) => {
+    if (item.category === "combo" && item.sauceCount && item.sauceCount > 0) {
+      setComboToCustomize(item);
+      setShowSauceModal(true);
+    } else {
+      addItemToCart(item);
+    }
+  };
+
+  const updateQuantity = (cartId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+      setCartItems((prevItems) => prevItems.filter((item) => item.cartId !== cartId));
     } else {
       setCartItems((prevItems) =>
-        prevItems.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item))
+        prevItems.map((item) => (item.cartId === cartId ? { ...item, quantity: newQuantity } : item))
       );
     }
   };
@@ -133,6 +155,9 @@ export default function NocheAlitasLanding() {
     cartItems.forEach((item) => {
       message += `• *${item.name}* x${item.quantity}\n`;
       message += `  ${item.description}\n`;
+      if (item.selectedSauces && item.selectedSauces.length > 0) {
+        message += `  Salsas: ${item.selectedSauces.join(", ")}\n`;
+      }
       message += `  $${item.price} c/u = $${(item.price * item.quantity).toFixed(2)}\n\n`;
     });
 
@@ -160,7 +185,19 @@ export default function NocheAlitasLanding() {
       <div className='bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800'>
         <Header />
         {/* <HeroSection /> */}
-        <MenuSection menuItems={menuItems} onAddToCart={addToCart} />
+        <MenuSection menuItems={menuItems} onAddToCart={handleAddToCart} />
+        <ComboSauceModal
+          combo={comboToCustomize}
+          isOpen={showSauceModal}
+          onClose={() => setShowSauceModal(false)}
+          onConfirm={(sauces) => {
+            if (comboToCustomize) {
+              addItemToCart(comboToCustomize, sauces);
+            }
+            setShowSauceModal(false);
+            setComboToCustomize(null);
+          }}
+        />
         <CartBar cartItems={cartItems} onViewCart={() => setShowCartModal(true)} />
         <CartModal
           isOpen={showCartModal}

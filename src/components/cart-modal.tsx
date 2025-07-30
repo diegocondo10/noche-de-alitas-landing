@@ -10,7 +10,7 @@ interface CartModalProps {
   isOpen: boolean;
   cartItems: CartItem[];
   onClose: () => void;
-  onUpdateQuantity: (itemId: string, newQuantity: number) => void;
+  onUpdateQuantity: (cartId: string, newQuantity: number) => void;
   onOrderNow: () => void;
   onClearCart: () => void;
 }
@@ -86,7 +86,7 @@ export function CartModal({
             <div className='space-y-4'>
               {cartItems.map((item) => (
                 <div
-                  key={item.id}
+                  key={item.cartId}
                   className='bg-slate-700 rounded-lg p-4 border border-slate-600 hover:border-yellow-400 transition-all duration-200'>
                   <div className='flex items-start gap-4'>
                     {/* Imagen del producto */}
@@ -107,7 +107,10 @@ export function CartModal({
                     {/* Información del producto */}
                     <div className='flex-1'>
                       <h4 className='text-orange-400 font-bold text-lg'>{item.name}</h4>
-                      <p className='text-gray-300 text-sm mb-2'>{item.description}</p>
+                      <p className='text-gray-300 text-sm mb-1'>{item.description}</p>
+                      {item.selectedSauces && item.selectedSauces.length > 0 && (
+                        <p className='text-gray-400 text-xs mb-1'>Salsas: {item.selectedSauces.join(', ')}</p>
+                      )}
                       <p className='text-yellow-400 font-bold'>${item.price} c/u</p>
                     </div>
 
@@ -115,7 +118,7 @@ export function CartModal({
                     <div className='flex flex-col items-end gap-2'>
                       <div className='flex items-center gap-2 bg-slate-800 rounded-lg p-1'>
                         <Button
-                          onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => onUpdateQuantity(item.cartId, item.quantity - 1)}
                           className='w-8 h-8 p-0 bg-red-500 hover:bg-red-600 rounded-md'
                           icon={<Minus className='w-4 h-4' />}
                         />
@@ -123,7 +126,7 @@ export function CartModal({
                           {item.quantity}
                         </span>
                         <Button
-                          onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => onUpdateQuantity(item.cartId, item.quantity + 1)}
                           className='w-8 h-8 p-0 bg-green-500 hover:bg-green-600 rounded-md'
                           icon={<Plus className='w-4 h-4' />}
                         />

@@ -7,8 +7,11 @@ export interface MenuItem {
   category: "combo" | "extra" | "bebida";
   popular?: boolean;
   spicyLevel?: number;
+  sauceCount?: number;
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  selectedSauces?: string[];
+  cartId: string;
 }
